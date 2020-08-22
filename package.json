@@ -1,6 +1,6 @@
 {
   "name": "knex-crud",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Helper CRUD functions for Knex.js",
   "main": "knex-crud.js",
   "scripts": {
