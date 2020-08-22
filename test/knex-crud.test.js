@@ -60,6 +60,49 @@ test('knex-crud', async t => {
     }
   })
 
+  t.test('listing without additional filters', async t => {
+    t.plan(1)
+
+    const knex = await buildApp(t, tableName)
+    await knex(tableName).insert(rows)
+    const crud = new KnexCRUD(tableName)
+
+    crud.bind(knex)
+
+    try {
+      const res = await crud.list()
+      const rowIds = rows.map(row => row.id)
+      const resIds = res.map(row => row.id)
+      t.same(resIds, rowIds, 'should return all existing records')
+    } catch (err) {
+      console.log(err)
+      t.error(err, 'should not throw any error')
+    }
+  })
+
+  t.test('listing with additional filters', async t => {
+    t.plan(1)
+
+    const knex = await buildApp(t, tableName)
+    await knex(tableName).insert(rows)
+    const crud = new KnexCRUD(tableName)
+
+    crud.bind(knex)
+
+    const filter1 = query => query.where('id', '>', 2)
+    const filter2 = query => query.whereNot('name', 'Mary')
+
+    try {
+      const res = await crud.list([filter1, filter2])
+      const rowIds = rows.filter(item => item.id > 2 && item.name !== 'Mary').map(row => row.id)
+      const resIds = res.map(row => row.id)
+      t.same(resIds, rowIds, 'should return only filtered records')
+    } catch (err) {
+      console.log(err)
+      t.error(err, 'should not throw any error')
+    }
+  })
+
   t.test('getting one missing record', async t => {
     t.plan(1)
 

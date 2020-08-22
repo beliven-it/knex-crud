@@ -27,7 +27,7 @@ class KnexCRUD {
     if (!this.knex) throw new Error('Missing knex binding')
   }
 
-  async filterBy (filters) {
+  async list (filters) {
     this.checkKnexBinding()
 
     const filtersFuncs = filters || []
@@ -42,7 +42,7 @@ class KnexCRUD {
 
     const res = await query
 
-    return res.map(item => this.formatter(item))
+    return Promise.all(res.map(item => this.formatter(item)))
   }
 
   async getOneBy (value, column) {
