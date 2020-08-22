@@ -1,0 +1,37 @@
+{
+  "name": "knex-crud",
+  "version": "0.0.1",
+  "description": "Helper CRUD functions for Knex.js",
+  "main": "knex-crud.js",
+  "scripts": {
+    "test": "npx tap -Rspec --coverage test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heply/knex-crud.git"
+  },
+  "keywords": [
+    "fastify",
+    "plugin",
+    "cron",
+    "jobs",
+    "automation"
+  ],
+  "author": "Heply s.r.l.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/heply/knex-crud/issues"
+  },
+  "homepage": "https://github.com/heply/knex-crud#readme",
+  "devDependencies": {
+    "eslint": "^7.7.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "knex": "^0.21.5",
+    "sqlite3": "^5.0.0",
+    "tap": "^14.10.8"
+  }
+}
