@@ -23,7 +23,7 @@ const petsCrud = new knexCrud('pets', {
 
 petsCrud.bind(knex)
 
-const felix = await petsCrud.insert({
+const felix = await petsCrud.insertOne({
   name: 'Felix',
   family: 'cats'
 })
