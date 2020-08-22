@@ -11,11 +11,10 @@
     "url": "git+https://github.com/heply/knex-crud.git"
   },
   "keywords": [
-    "fastify",
-    "plugin",
-    "cron",
-    "jobs",
-    "automation"
+    "knex",
+    "crud",
+    "helper",
+    "query"
   ],
   "author": "Heply s.r.l.",
   "license": "MIT",
