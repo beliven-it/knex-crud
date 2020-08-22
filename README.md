@@ -2,6 +2,8 @@
 
 Helper CRUD functions for [Knex.js](http://knexjs.org/)
 
+![Node.js CI](https://github.com/heply/knex-crud/workflows/Node.js%20CI/badge.svg)
+
 ## Install
 
 ```bash
