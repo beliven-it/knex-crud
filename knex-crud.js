@@ -27,44 +27,60 @@ class KnexCRUD {
     if (!this.knex) throw new Error('Missing knex binding')
   }
 
-  async list (filters) {
+  getBaseQuery () {
     this.checkKnexBinding()
+    return this.knex(this.table)
+  }
 
-    const filtersFuncs = filters || []
-    let query = this.knex(this.table)
-
-    for (let i = 0; i < filtersFuncs.length; ++i) {
-      const filterFunc = filtersFuncs[i]
-      if (filterFunc) {
-        query = filterFunc(query)
-      }
-    }
+  async list (filters) {
+    const baseQuery = this.getBaseQuery()
+    const query = this.filterQueryBy(baseQuery, filters)
 
     const res = await query
 
     return Promise.all(res.map(item => this.formatter(item)))
   }
 
-  async getOneBy (value, column) {
-    this.checkKnexBinding()
+  async paginatedList (filters, limit, offset) {
+    const baseQuery = this.getBaseQuery()
+    const filteredQuery = this.filterQueryBy(baseQuery, filters)
+    const paginatedQuery = await this.paginateQuery(filteredQuery, limit, offset)
 
+    const rows = await Promise.all(paginatedQuery.rows.map(row => this.formatter(row)))
+    const res = {
+      ...paginatedQuery,
+      rows
+    }
+
+    return res
+  }
+
+  async getOneBy (value, column) {
     const lookupField = column || this.pk
-    const res = await this.knex(this.table)
-      .where(lookupField, value)
-      .first()
+    const baseQuery = this.getBaseQuery()
+    const res = await baseQuery.where(lookupField, value).first()
+
+    if (!res) {
+      return null
+    }
+
     const formatted = await this.formatter(res)
-    return formatted || null
+    return formatted
   }
 
   async insertOne (data) {
-    this.checkKnexBinding()
+    const baseQuery = this.getBaseQuery()
 
     const latestID = await this.knex.transaction(async (trx) => {
-      await this.knex(this.table)
+      await baseQuery
         .transacting(trx)
         .insert(data)
 
-      const latest = await trx(this.table).select(this.pk).orderBy(this.pk, 'desc').first()
+      const latest = await trx(this.table)
+        .select(this.pk)
+        .orderBy(this.pk, 'desc')
+        .first()
+
       return latest[this.pk]
     })
 
@@ -77,13 +93,9 @@ class KnexCRUD {
   }
 
   async updateOneBy (data, value, column) {
-    this.checkKnexBinding()
-
     const lookupField = column || this.pk
-    await this.knex(this.table)
-      .where(lookupField, value)
-      .limit(1)
-      .update(data)
+    const baseQuery = this.getBaseQuery()
+    await baseQuery.where(lookupField, value).limit(1).update(data)
 
     // TODO: optimization
     // This actually requires 2 queries. Where supported,
@@ -94,19 +106,29 @@ class KnexCRUD {
   }
 
   async deleteOneBy (value, column) {
-    this.checkKnexBinding()
-
     const lookupField = column || this.pk
-    const deletedRows = await this.knex(this.table)
-      .where(lookupField, value)
-      .del()
+    const baseQuery = this.getBaseQuery()
+    const deletedRows = await baseQuery.where(lookupField, value).del()
 
     return (deletedRows > 0)
   }
 
-  async searchInQueryBy (query, searchQuery, columns) {
-    this.checkKnexBinding()
+  filterQueryBy (query, filters) {
+    if (!query) throw new Error('Missing query')
 
+    let _query = query.clone()
+
+    const filtersFuncs = filters || []
+    for (const filterFunc of filtersFuncs) {
+      if (filterFunc) {
+        _query = filterFunc(_query)
+      }
+    }
+
+    return _query
+  }
+
+  searchInQueryBy (query, searchQuery, columns) {
     if (!query) throw new Error('Missing query')
 
     if (searchQuery && columns) {
@@ -123,9 +145,7 @@ class KnexCRUD {
     return query
   }
 
-  async orderQueryBy (query, orderQuery) {
-    this.checkKnexBinding()
-
+  orderQueryBy (query, orderQuery) {
     if (!query) throw new Error('Missing query')
 
     const [orderField, orderDirection] = (orderQuery || this.defaultOrder).split(':')
@@ -137,8 +157,6 @@ class KnexCRUD {
   }
 
   async paginateQuery (query, limit, offset) {
-    this.checkKnexBinding()
-
     if (!query) throw new Error('Missing query')
 
     const totalQuery = query
@@ -148,19 +166,21 @@ class KnexCRUD {
       .distinct(this.pk)
 
     if (limit) {
-      query = query.limit(parseInt(limit))
+      const _limit = parseInt(limit, 10)
+      query = query.limit(_limit)
     }
 
     if (offset) {
-      query = query.offset(parseInt(offset))
+      const _offset = parseInt(offset, 10)
+      query = query.offset(_offset)
     }
 
     const rows = await query || []
     const total = await totalQuery || []
 
-    const _total = parseInt(total.length)
-    const _offset = parseInt(offset) || 0
-    const _limit = parseInt(limit) || _total
+    const _total = parseInt(total.length, 10)
+    const _offset = parseInt(offset, 10) || 0
+    const _limit = parseInt(limit, 10) || _total
     const _page = Math.ceil(_offset / _limit)
 
     return {

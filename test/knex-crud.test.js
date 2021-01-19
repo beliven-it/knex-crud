@@ -103,6 +103,28 @@ test('knex-crud', async t => {
     }
   })
 
+  t.test('paginating with additional filters', async t => {
+    t.plan(1)
+
+    const knex = await buildApp(t, tableName)
+    await knex(tableName).insert(rows)
+    const crud = new KnexCRUD(tableName)
+
+    crud.bind(knex)
+
+    const filter1 = query => query.where('id', '>', 2)
+
+    try {
+      const res = await crud.paginatedList([filter1], 2, 1)
+      const rowIds = rows.filter(item => item.id > 2).map(row => row.id).slice(1, 3)
+      const resIds = res.rows.map(row => row.id)
+      t.same(resIds, rowIds, 'should return only filtered, paginated records')
+    } catch (err) {
+      console.log(err)
+      t.error(err, 'should not throw any error')
+    }
+  })
+
   t.test('getting one missing record', async t => {
     t.plan(1)
 

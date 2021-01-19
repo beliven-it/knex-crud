@@ -45,7 +45,9 @@ console.log(felix)
 | `constructor (table, options)`      | Initialize a new istance for `table`. Additional `options` can be passed.                                       |
 | `bind (knex)`                       | Bind a `knex` instance. If not bound, all other methods will throw an error.                                   |
 | `checkKnexBinding ()`               | Used to check for existing binding. If not bound , an error will be thrown.                                    |
+| `getBaseQuery ()`                   | Used to create the base for all queries. By default is `knex(tableName)`.                              |
 | `list (filters)`                    | Return a list of records, optionally filtered by an array of `filters` functions (e.g. `async query => query.where(...)`). |
+| `paginatedList (filters, limit, offset)` | Return a paginated list of records, optionally filtered and limited. See `list(...)`. |
 | `getOneBy (value, column)`          | Get the first record matching the given `value` in `column` (`${pk}` by default).                               |
 | `insertOne (data)`                  | Insert a new record with given `data` and return it.                                                            |
 | `updateOneBy (data, value, column)` | Update `data` of the first matching record by `value` in `column` (`${pk}` by default).                         |
